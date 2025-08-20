@@ -178,8 +178,33 @@ page = pmu.Page(
 
 def create_app():
     """Create the main application."""
-    # Important: Return a new instance of the page for each route
-    # This ensures proper static resource loading
+    # Initialize URL handling for this instance
+    update_menu_from_url()
+    
+    # If no menu item is selected, default based on current URL
+    if not menu.value:
+        if pn.state.location and pn.state.location.pathname:
+            current_path = pn.state.location.pathname
+            current_page = url_to_page.get(current_path, 'Home')
+            
+            # Find and set the appropriate menu item
+            for item in menu.items:
+                if _label_of(item) == current_page:
+                    menu.value = item
+                    break
+                elif 'items' in item:
+                    for subitem in item['items']:
+                        if _label_of(subitem) == current_page:
+                            menu.value = subitem
+                            break
+        else:
+            # Default to Home
+            for item in menu.items:
+                if _label_of(item) == "Home":
+                    menu.value = item
+                    break
+    
+    # Return the page instance
     app_page = pmu.Page(
         main=[main_switch],
         sidebar=[menu, sidebar_switch], 
@@ -189,7 +214,15 @@ def create_app():
     return app_page
 
 if __name__ == "__main__":
-    # Solution: Use Panel's recommended SPA approach
-    # Serve from root with client-side routing for proper static resource handling
-    pn.serve(page, show=True, port=5007, 
+    # Solution: Use Panel's multi-route serving approach
+    # Serve the same app from all routes to handle direct URL access and page refresh
+    apps = {
+        '/': create_app,
+        '/modeling/process-definition': create_app,
+        '/modeling/calculation-setup': create_app,
+        '/results/impact-overview': create_app,
+        '/results/contribution-analysis': create_app,
+    }
+    
+    pn.serve(apps, show=True, port=5007, 
              allow_websocket_origin=["localhost:5007"])
