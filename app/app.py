@@ -160,6 +160,15 @@ page = pmu.Page(
 page.servable(title="Demo App")
 
 if __name__ == "__main__":
-    # Serve single app with Panel's Location component for URL routing
-    pn.serve(page, show=True, port=5007, 
+    # Serve the app from all possible routes to handle direct URL access
+    # and ensure static resources load correctly from any path
+    routes = {
+        '/': page,
+        '/modeling/process-definition': page,
+        '/modeling/calculation-setup': page,
+        '/results/impact-overview': page,
+        '/results/contribution-analysis': page,
+    }
+    
+    pn.serve(routes, show=True, port=5007, 
              allow_websocket_origin=["localhost:5007"])
