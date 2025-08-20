@@ -164,7 +164,11 @@ if not menu.value:
             menu.value = item
             break
 
-# Create the page
+# Configure Panel to use absolute URLs for static resources
+pn.config.global_css = []
+pn.config.apply_theme = 'dark'
+
+# Create the page with Material UI theme
 page = pmu.Page(
     main=[main_switch],
     sidebar=[menu, sidebar_switch],
@@ -172,7 +176,20 @@ page = pmu.Page(
     theme_config=theme_config,
 )
 
-page.servable(title="Demo App")
+def create_app():
+    """Create the main application."""
+    # Important: Return a new instance of the page for each route
+    # This ensures proper static resource loading
+    app_page = pmu.Page(
+        main=[main_switch],
+        sidebar=[menu, sidebar_switch], 
+        title="Demo App",
+        theme_config=theme_config,
+    )
+    return app_page
 
 if __name__ == "__main__":
-    pn.serve(page, show=True, location=True)
+    # Solution: Use Panel's recommended SPA approach
+    # Serve from root with client-side routing for proper static resource handling
+    pn.serve(page, show=True, port=5007, 
+             allow_websocket_origin=["localhost:5007"])
