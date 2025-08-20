@@ -107,8 +107,7 @@ def update_url_from_menu(event):
         label = _label_of(event.new)
         target_url = page_to_url.get(label)
         if target_url and pn.state.location:
-            # Update URL without page reload
-            pn.state.location.search = ''
+            # Update URL without page reload using Panel's Location component
             pn.state.location.pathname = target_url
 
 def update_menu_from_url():
@@ -128,27 +127,12 @@ def update_menu_from_url():
                         menu.value = subitem
                         return
 
-# Set up URL handling
+# Set up URL handling - watch for pathname changes
 if pn.state.location:
     pn.state.location.param.watch(lambda event: update_menu_from_url(), 'pathname')
 
 # Set up menu handling
 menu.param.watch(update_url_from_menu, 'value')
-
-# Create reactive views based on menu selection
-def get_main_view():
-    """Get the main view for the current page."""
-    if menu.value:
-        label = _label_of(menu.value)
-        return _main_views.get(label, _main_views["Home"])
-    return _main_views["Home"]
-
-def get_sidebar_view():
-    """Get the sidebar view for the current page."""
-    if menu.value:
-        label = _label_of(menu.value)
-        return _sidebar_views.get(label, _sidebar_views["Home"])
-    return _sidebar_views["Home"]
 
 # Create bound views that update when menu changes
 main_switch = pn.bind(lambda v: _main_views.get(_label_of(v), _main_views["Home"]), menu.param.value)
@@ -164,11 +148,7 @@ if not menu.value:
             menu.value = item
             break
 
-# Configure Panel to use absolute URLs for static resources
-pn.config.global_css = []
-pn.config.apply_theme = 'dark'
-
-# Create the page with Material UI theme
+# Create the main page using Panel's Location-based routing
 page = pmu.Page(
     main=[main_switch],
     sidebar=[menu, sidebar_switch],
@@ -176,53 +156,10 @@ page = pmu.Page(
     theme_config=theme_config,
 )
 
-def create_app():
-    """Create the main application."""
-    # Initialize URL handling for this instance
-    update_menu_from_url()
-    
-    # If no menu item is selected, default based on current URL
-    if not menu.value:
-        if pn.state.location and pn.state.location.pathname:
-            current_path = pn.state.location.pathname
-            current_page = url_to_page.get(current_path, 'Home')
-            
-            # Find and set the appropriate menu item
-            for item in menu.items:
-                if _label_of(item) == current_page:
-                    menu.value = item
-                    break
-                elif 'items' in item:
-                    for subitem in item['items']:
-                        if _label_of(subitem) == current_page:
-                            menu.value = subitem
-                            break
-        else:
-            # Default to Home
-            for item in menu.items:
-                if _label_of(item) == "Home":
-                    menu.value = item
-                    break
-    
-    # Return the page instance
-    app_page = pmu.Page(
-        main=[main_switch],
-        sidebar=[menu, sidebar_switch], 
-        title="Demo App",
-        theme_config=theme_config,
-    )
-    return app_page
+# Make the page servable for single-app routing
+page.servable(title="Demo App")
 
 if __name__ == "__main__":
-    # Solution: Use Panel's multi-route serving approach
-    # Serve the same app from all routes to handle direct URL access and page refresh
-    apps = {
-        '/': create_app,
-        '/modeling/process-definition': create_app,
-        '/modeling/calculation-setup': create_app,
-        '/results/impact-overview': create_app,
-        '/results/contribution-analysis': create_app,
-    }
-    
-    pn.serve(apps, show=True, port=5007, 
+    # Serve single app with Panel's Location component for URL routing
+    pn.serve(page, show=True, port=5007, 
              allow_websocket_origin=["localhost:5007"])
