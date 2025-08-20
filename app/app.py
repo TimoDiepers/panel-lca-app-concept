@@ -16,188 +16,163 @@ pn.extension('tabulator')
 
 add_chem_demo_project()
 
-def create_page_app(page_type):
-    """Create a page application for the given page type."""
+# Helper function to get label from menu item
+def _label_of(menu_item):
+    """Extract label from menu item."""
+    if isinstance(menu_item, dict):
+        return menu_item.get("label", "")
+    return ""
+
+# Create menu
+menu = pmu.widgets.MenuList(
+    items=[
+        {
+            "label": "Home",
+            "icon": "home_rounded",
+        },
+        {
+            "label": "Modeling",
+            "icon": "settings_rounded",
+            "selectable": False,
+            "items": [
+                {'label': 'Process Definition', 'icon': 'handyman_rounded'},
+                {'label': 'Calculation Setup', 'icon': 'calculate_rounded'},
+            ]
+        },
+        {
+            "label": "Results",
+            "icon": "query_stats_rounded",
+            "selectable": False,
+            "items": [
+                {'label': 'Impact Overview', 'icon': 'leaderboard_rounded'},
+                {'label': 'Contribution Analysis', 'icon': 'pie_chart_rounded'},
+            ]
+        },
+    ],
+    sizing_mode="stretch_width",
+    label="Menu",
+    margin=(0, 0, 20, 0),  # space on bottom
+    stylesheets=[
+        ":host .MuiMenuItem-root.Mui-disabled {cursor: default !important; pointer-events: none;}"
+    ]
+)
+
+# Page content mappings
+_main_views = {}
+_sidebar_views = {}
+
+def setup_page_views():
+    """Set up the page view mappings with proper initialization."""
+    global _main_views, _sidebar_views
     
-    # Create menu with current page highlighted
-    menu = pmu.widgets.MenuList(
-        items=[
-            {
-                "label": "Home",
-                "icon": "home_rounded",
-            },
-            {
-                "label": "Modeling",
-                "icon": "settings_rounded",
-                "selectable": False,
-                "items": [
-                    {'label': 'Process Definition', 'icon': 'handyman_rounded'},
-                    {'label': 'Calculation Setup', 'icon': 'calculate_rounded'},
-                ]
-            },
-            {
-                "label": "Results",
-                "icon": "query_stats_rounded",
-                "selectable": False,
-                "items": [
-                    {'label': 'Impact Overview', 'icon': 'leaderboard_rounded'},
-                    {'label': 'Contribution Analysis', 'icon': 'pie_chart_rounded'},
-                ]
-            },
-        ],
-        sizing_mode="stretch_width",
-        label="Menu",
-        margin=(0, 0, 20, 0),  # space on bottom
-        stylesheets=[
-            ":host .MuiMenuItem-root.Mui-disabled {cursor: default !important; pointer-events: none;}"
-        ]
-    )
-
-    # Navigation helper function
-    def navigate_to_url(url):
-        """Navigate to a URL using JavaScript."""
-        js_code = f"""
-        <script>
-        window.location.href = '{url}';
-        </script>
-        """
-        return pn.pane.HTML(js_code, width=0, height=0)
-
-    # Add navigation handler to the page
-    nav_pane = pn.pane.HTML("", width=0, height=0)
+    # Home page
+    _main_views["Home"] = create_home_view()
+    _sidebar_views["Home"] = create_home_sidebar()
     
-    # Handle menu clicks to navigate to other pages
-    def handle_menu_click(event):
-        if hasattr(event, 'new') and event.new:
-            item = event.new
-            if isinstance(item, dict):
-                label = item.get('label', '')
-                
-                # Map labels to URLs
-                url_map = {
-                    'Home': '/',
-                    'Process Definition': '/modeling/process-definition',
-                    'Calculation Setup': '/modeling/calculation-setup',
-                    'Impact Overview': '/results/impact-overview',
-                    'Contribution Analysis': '/results/contribution-analysis',
-                }
-                
-                target_url = url_map.get(label)
-                if target_url:
-                    # Update navigation pane to trigger browser navigation
-                    nav_pane.object = f"""
-                    <script>
-                    if (window.location.pathname !== '{target_url}') {{
-                        window.location.href = '{target_url}';
-                    }}
-                    </script>
-                    """
+    # Process Definition page
+    _main_views["Process Definition"] = create_process_definition_view()
+    _sidebar_views["Process Definition"] = create_process_definition_sidebar()
     
-    menu.param.watch(handle_menu_click, 'value')
-
-    # Create page content based on page type
-    if page_type == 'home':
-        main_view = create_home_view()
-        sidebar_view = create_home_sidebar()
-        # Set home as selected
-        for item in menu.items:
-            if item.get('label') == 'Home':
-                menu.value = item
-                break
-                
-    elif page_type == 'modeling/process-definition':
-        main_view = create_process_definition_view()
-        sidebar_view = create_process_definition_sidebar()
-        # Set Process Definition as selected
-        for item in menu.items:
-            if 'items' in item:
-                for subitem in item['items']:
-                    if subitem.get('label') == 'Process Definition':
-                        menu.value = subitem
-                        break
-                        
-    elif page_type == 'modeling/calculation-setup':
-        main_view, widgets = create_calculation_setup_view()
-        sidebar_view = create_calculation_setup_sidebar(widgets)
-        # Set Calculation Setup as selected
-        for item in menu.items:
-            if 'items' in item:
-                for subitem in item['items']:
-                    if subitem.get('label') == 'Calculation Setup':
-                        menu.value = subitem
-                        break
-                        
-    elif page_type == 'results/impact-overview':
-        main_view, widgets = create_impact_overview_view()
-        sidebar_view = create_impact_overview_sidebar(widgets)
-        # Set Impact Overview as selected
-        for item in menu.items:
-            if 'items' in item:
-                for subitem in item['items']:
-                    if subitem.get('label') == 'Impact Overview':
-                        menu.value = subitem
-                        break
-                        
-    elif page_type == 'results/contribution-analysis':
-        main_view = create_contribution_analysis_view()
-        sidebar_view = create_contribution_analysis_sidebar()
-        # Set Contribution Analysis as selected
-        for item in menu.items:
-            if 'items' in item:
-                for subitem in item['items']:
-                    if subitem.get('label') == 'Contribution Analysis':
-                        menu.value = subitem
-                        break
-    else:
-        # Default to home
-        main_view = create_home_view()
-        sidebar_view = create_home_sidebar()
-
-    # Create the page
-    page = pmu.Page(
-        main=[main_view, nav_pane],
-        sidebar=[menu, sidebar_view],
-        title="Demo App",
-        theme_config=theme_config,
-    )
+    # Calculation Setup page
+    calc_main, calc_widgets = create_calculation_setup_view()
+    _main_views["Calculation Setup"] = calc_main
+    _sidebar_views["Calculation Setup"] = create_calculation_setup_sidebar(calc_widgets)
     
-    return page
+    # Impact Overview page
+    impact_main, impact_widgets = create_impact_overview_view()
+    _main_views["Impact Overview"] = impact_main
+    _sidebar_views["Impact Overview"] = create_impact_overview_sidebar(impact_widgets)
+    
+    # Contribution Analysis page
+    _main_views["Contribution Analysis"] = create_contribution_analysis_view()
+    _sidebar_views["Contribution Analysis"] = create_contribution_analysis_sidebar()
 
+# Initialize page views
+setup_page_views()
 
-def home_app():
-    """Home page application."""
-    return create_page_app('home')
-
-
-def process_definition_app():
-    """Process Definition page application."""
-    return create_page_app('modeling/process-definition')
-
-
-def calculation_setup_app():
-    """Calculation Setup page application."""
-    return create_page_app('modeling/calculation-setup')
-
-
-def impact_overview_app():
-    """Impact Overview page application."""
-    return create_page_app('results/impact-overview')
-
-
-def contribution_analysis_app():
-    """Contribution Analysis page application."""
-    return create_page_app('results/contribution-analysis')
-
-
-# Define the routing dictionary for Panel's serve function
-apps = {
-    '': home_app,  # Root path
-    'modeling/process-definition': process_definition_app,
-    'modeling/calculation-setup': calculation_setup_app,
-    'results/impact-overview': impact_overview_app,
-    'results/contribution-analysis': contribution_analysis_app,
+# URL to page mapping
+url_to_page = {
+    '/': 'Home',
+    '/modeling/process-definition': 'Process Definition',
+    '/modeling/calculation-setup': 'Calculation Setup',
+    '/results/impact-overview': 'Impact Overview',
+    '/results/contribution-analysis': 'Contribution Analysis',
 }
 
+page_to_url = {v: k for k, v in url_to_page.items()}
+
+def update_url_from_menu(event):
+    """Update URL when menu selection changes."""
+    if hasattr(event, 'new') and event.new:
+        label = _label_of(event.new)
+        target_url = page_to_url.get(label)
+        if target_url and pn.state.location:
+            # Update URL without page reload
+            pn.state.location.search = ''
+            pn.state.location.pathname = target_url
+
+def update_menu_from_url():
+    """Update menu selection based on current URL."""
+    if pn.state.location:
+        current_path = pn.state.location.pathname or '/'
+        current_page = url_to_page.get(current_path, 'Home')
+        
+        # Find and set the menu item
+        for item in menu.items:
+            if _label_of(item) == current_page:
+                menu.value = item
+                return
+            elif 'items' in item:
+                for subitem in item['items']:
+                    if _label_of(subitem) == current_page:
+                        menu.value = subitem
+                        return
+
+# Set up URL handling
+if pn.state.location:
+    pn.state.location.param.watch(lambda event: update_menu_from_url(), 'pathname')
+
+# Set up menu handling
+menu.param.watch(update_url_from_menu, 'value')
+
+# Create reactive views based on menu selection
+def get_main_view():
+    """Get the main view for the current page."""
+    if menu.value:
+        label = _label_of(menu.value)
+        return _main_views.get(label, _main_views["Home"])
+    return _main_views["Home"]
+
+def get_sidebar_view():
+    """Get the sidebar view for the current page."""
+    if menu.value:
+        label = _label_of(menu.value)
+        return _sidebar_views.get(label, _sidebar_views["Home"])
+    return _sidebar_views["Home"]
+
+# Create bound views that update when menu changes
+main_switch = pn.bind(lambda v: _main_views.get(_label_of(v), _main_views["Home"]), menu.param.value)
+sidebar_switch = pn.bind(lambda v: _sidebar_views.get(_label_of(v), _sidebar_views["Home"]), menu.param.value)
+
+# Initialize based on current URL
+update_menu_from_url()
+
+# If no menu item is selected, default to Home
+if not menu.value:
+    for item in menu.items:
+        if _label_of(item) == "Home":
+            menu.value = item
+            break
+
+# Create the page
+page = pmu.Page(
+    main=[main_switch],
+    sidebar=[menu, sidebar_switch],
+    title="Demo App",
+    theme_config=theme_config,
+)
+
+page.servable(title="Demo App")
 
 if __name__ == "__main__":
-    pn.serve(apps, show=True, location=True)
+    pn.serve(page, show=True, location=True)

@@ -52,7 +52,12 @@ def create_impact_overview_view():
             _prev_theme[0] = cur
             _on_theme_change(None)
 
-    pn.state.add_periodic_callback(_poll_theme, period=200, start=True)
+    # Only add periodic callback if we have a running event loop
+    try:
+        pn.state.add_periodic_callback(_poll_theme, period=200, start=True)
+    except RuntimeError:
+        # No event loop running yet, skip for now
+        pass
 
     normalize.param.watch(_toggle_normalize, "value")
     products_mc.param.watch(_recalc, "value")
