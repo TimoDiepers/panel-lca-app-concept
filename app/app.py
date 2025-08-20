@@ -86,6 +86,9 @@ class App:
         """Get current route from location search parameters"""
         if self.location and hasattr(self.location, 'search'):
             search = self.location.search or ""
+            # Remove leading ? if present
+            if search.startswith("?"):
+                search = search[1:]
             # Extract page parameter from search string
             if "page=" in search:
                 # Parse page=value from search string
@@ -132,7 +135,7 @@ class App:
         # Update location to trigger route change
         if self.location and hasattr(self.location, 'search'):
             if route:
-                self.location.search = f"page={route}"
+                self.location.search = f"?page={route}"
             else:
                 self.location.search = ""
         else:
@@ -141,9 +144,9 @@ class App:
 
     def _on_location_change(self, event):
         """Handle browser navigation (back/forward buttons, URL changes)"""
-        route = event.new or "/"
+        route = self._get_current_route()
         self._update_views(route)
-        self._sync_menu_with_location()
+        self._sync_menu_with_location(route)
 
     def _sync_menu_with_location(self, route=None):
         """Sync menu selection with current location"""
