@@ -6,6 +6,7 @@ from bw import list_projects, set_current_project, list_databases, list_processe
 
 # Module-level shared state for calculation setup
 _shared_state = {
+    'current_project': None,
     'current_db': None,
     'df_processes': pd.DataFrame(columns=["Product", "Process", "Location"]),
     'widgets': None,
@@ -99,7 +100,7 @@ def create_calculation_setup_widgets():
         layout="fit_data_stretch",
         name="Processes",
         show_index=False,
-        sorters=[{"field": "Name", "dir": "asc"}],
+        sorters=[{"field": "Product", "dir": "asc"}],
         editors={
             "Product": None,
             "Process": None,
@@ -111,9 +112,10 @@ def create_calculation_setup_widgets():
     # Callbacks
     def _on_project_select(event):
         print(f"Project selected: {event.new}")
+        _shared_state['current_project'] = event.new
         set_current_project(event.new)
         select_db.disabled = False
-        select_db.options = list_databases()[::-1]
+        select_db.options = list_databases()
 
     def _on_db_select(event):
         print(f"Database selected: {event.new}")
@@ -124,17 +126,15 @@ def create_calculation_setup_widgets():
         filter_product.disabled = True
         filter_location.disabled = True
         filter_button.disabled = True
-        _shared_state['df_processes'] = pd.DataFrame(
-            [
-                {
-                    "Product": p.get("reference product"),
-                    "Process": p.get("name"),
-                    "Location": p.get("location"),
-                }
-                for p in list_processes(_shared_state['current_db'])
-            ]
-        )
-        processes_tabulator.visible = True
+        data = [
+            {
+                "Product": p.get("reference product"),
+                "Process": p.get("name"),
+                "Location": p.get("location"),
+            }
+            for p in list_processes(_shared_state['current_db'])
+        ]
+        _shared_state['df_processes'] = pd.DataFrame(data, columns=["Product", "Process", "Location"])
         functional_unit.visible = True
         select_db.loading = False
         filter_process.disabled = False
@@ -145,8 +145,11 @@ def create_calculation_setup_widgets():
         processes_tabulator.value = _shared_state['df_processes']
 
     def _on_process_click(event):
-        df_sel = processes_tabulator.selected_dataframe
-        df_sel.insert(0, "Amount", 1.0)
+        df_sel = processes_tabulator.selected_dataframe.copy()
+        if "Amount" not in df_sel.columns:
+            df_sel.insert(0, "Amount", 1.0)
+        else:
+            df_sel["Amount"] = df_sel["Amount"].fillna(1.0)
         functional_unit.value = df_sel
 
     def _apply_filters(event=None):
