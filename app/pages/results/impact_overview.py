@@ -94,12 +94,12 @@ def create_impact_overview_view():
         "Stacked bar chart of carbon footprint by stage and product."
     )
 
-    results_tabs = pn.Tabs(
-        ("Stacked Bars", widgets['plotly_pane']),
-        ("Sankey", widgets['sankey_pane']),
-    )
+    # results_tabs = pn.Tabs(
+    #     ("Stacked Bars", ),
+    #     ("Sankey", widgets['sankey_pane']),
+    # )
     
-    return pmu.Column(header, results_tabs, sizing_mode="stretch_width")
+    return pmu.Column(header, widgets['plotly_pane'], sizing_mode="stretch_width")
 
 def create_impact_overview_sidebar():
     """Create the impact overview page sidebar"""

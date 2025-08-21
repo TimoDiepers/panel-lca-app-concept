@@ -187,6 +187,7 @@ def create_calculation_setup_widgets():
             fu_df = functional_unit.value
             fu_df = pd.concat([fu_df, clicked], ignore_index=True)
             functional_unit.value = fu_df
+            calculate_button.disabled = functional_unit.value.empty
         except Exception as e:
             print(f"Process row click error: {e}")
 
@@ -200,7 +201,8 @@ def create_calculation_setup_widgets():
                 functional_unit.value = df
         except Exception as e:
             print(f"Functional unit delete error: {e}")
-        # functional_unit.layout = "fit_data_table"
+        calculate_button.disabled = functional_unit.value.empty
+        
 
     def _apply_filters(event=None):
         try:
@@ -252,6 +254,22 @@ def create_calculation_setup_widgets():
         disabled=True,
     )
     
+    calculate_button = pmu.widgets.Button(
+        name="Calculate & Show Results",
+        icon="calculate",
+        icon_size="1.5em",
+        variant="contained",
+        color="primary",
+        disabled=functional_unit.value.empty,
+        size="large",
+        sizing_mode="stretch_width",
+    )
+
+    def _on_calculate_click(event):
+        pn.state.location.hash = "#results/impact-overview"
+
+    calculate_button.on_click(_on_calculate_click)
+
     return {
         'select_project': select_project,
         'select_db': select_db,
@@ -260,6 +278,7 @@ def create_calculation_setup_widgets():
         'processes_tabulator': processes_tabulator,
         'functional_unit': functional_unit,
         'method_select': method_select,
+        'calculate_button': calculate_button,
     }
     
 def create_calculation_setup_view():
@@ -268,9 +287,9 @@ def create_calculation_setup_view():
     
     # Processes section
     processes_header = pmu.pane.Markdown("""
-## Browse Products & Processes
+## Browse Products
 
-Please select the products and processes you want to include in the analysis.
+Products can be filtered using the fields in the left sidebar. Click on a row to add the product to the functional unit.
 """)
 
     processes_section = pmu.Column(
@@ -283,7 +302,7 @@ Please select the products and processes you want to include in the analysis.
     fu_header = pmu.pane.Markdown("""
 ## Functional Unit
 
-Select products and processes to add to the functional unit by clicking on the corresponding row.
+These are the products selected for assessment. Amounts can be edited directly in the corresponding table cells.
 """)
     fu_section = pmu.Column(
         fu_header,
@@ -307,6 +326,7 @@ Select the method to use for the analysis.
         processes_section,
         fu_section,
         method_section,
+        widgets['calculate_button'],
         sizing_mode="stretch_width",
     )
 

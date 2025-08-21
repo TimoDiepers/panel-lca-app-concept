@@ -38,3 +38,37 @@ def query_distinct_process_names(db):
 def get_method_options():
     method_list = [m for m in bd.methods]
     return build_nested_options(method_list)
+
+def create_process(db, name, product, location, unit, process_production_amount, **metadata):
+    """Create a new process in the specified database."""
+    db = bd.Database(db)
+    process = db.new_node(
+        name=name,
+        location=location,
+        unit=unit,
+        **metadata
+    )
+    process["reference product"] = product
+    process.save()
+    process.new_edge(
+        input=process,
+        amount=process_production_amount,
+        type="production"
+    ).save()
+    return process
+
+def add_input(process_db, process_name, process_product, process_location, input_db, input_name, input_product, input_location, amount):
+    """Add an input to a process."""
+    process = bd.get_node(database=process_db, name=process_name, product=process_product, location=process_location)
+    input_act = bd.get_node(database=input_db, name=input_name, product=input_product, location=input_location)
+
+    if not process or not input_act:
+        raise ValueError("Process or input activity not found.")
+    
+    process.new_edge(
+        input=input_act,
+        amount=amount,
+        type="technosphere"
+    ).save()
+    
+    return process
