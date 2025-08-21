@@ -100,7 +100,7 @@ def create_calculation_setup_widgets():
         layout="fit_data_stretch",
         name="Processes",
         show_index=False,
-        sorters=[{"field": "Product", "dir": "asc"}],
+        sorters=[{"field": "Name", "dir": "asc"}],
         editors={
             "Product": None,
             "Process": None,
@@ -115,7 +115,7 @@ def create_calculation_setup_widgets():
         _shared_state['current_project'] = event.new
         set_current_project(event.new)
         select_db.disabled = False
-        select_db.options = list_databases()
+        select_db.options = list_databases()[::-1]
 
     def _on_db_select(event):
         print(f"Database selected: {event.new}")
@@ -126,15 +126,18 @@ def create_calculation_setup_widgets():
         filter_product.disabled = True
         filter_location.disabled = True
         filter_button.disabled = True
-        data = [
-            {
-                "Product": p.get("reference product"),
-                "Process": p.get("name"),
-                "Location": p.get("location"),
-            }
-            for p in list_processes(_shared_state['current_db'])
-        ]
-        _shared_state['df_processes'] = pd.DataFrame(data, columns=["Product", "Process", "Location"])
+        set_current_project(_shared_state['current_project'])
+        _shared_state['df_processes'] = pd.DataFrame(
+            [
+                {
+                    "Product": p.get("reference product"),
+                    "Process": p.get("name"),
+                    "Location": p.get("location"),
+                }
+                for p in list_processes(_shared_state['current_db'])
+            ]
+        )
+        processes_tabulator.visible = True
         functional_unit.visible = True
         select_db.loading = False
         filter_process.disabled = False
@@ -145,11 +148,8 @@ def create_calculation_setup_widgets():
         processes_tabulator.value = _shared_state['df_processes']
 
     def _on_process_click(event):
-        df_sel = processes_tabulator.selected_dataframe.copy()
-        if "Amount" not in df_sel.columns:
-            df_sel.insert(0, "Amount", 1.0)
-        else:
-            df_sel["Amount"] = df_sel["Amount"].fillna(1.0)
+        df_sel = processes_tabulator.selected_dataframe
+        df_sel.insert(0, "Amount", 1.0)
         functional_unit.value = df_sel
 
     def _apply_filters(event=None):
