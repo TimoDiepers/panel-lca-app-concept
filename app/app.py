@@ -19,42 +19,28 @@ pn.extension('tabulator')
 # Initialize demo data
 add_chem_demo_project()
 
-# Route mapping for URL-based navigation (using query parameters)
-ROUTE_MAP = {
-    "": ("Home", create_home_view, create_home_sidebar),
-    "home": ("Home", create_home_view, create_home_sidebar),
-    "process-definition": ("Process Definition", create_process_definition_view, create_process_definition_sidebar),
-    "calculation-setup": ("Calculation Setup", create_calculation_setup_view, create_calculation_setup_sidebar),
-    "impact-overview": ("Impact Overview", create_impact_overview_view, create_impact_overview_sidebar),
-    "contribution-analysis": ("Contribution Analysis", create_contribution_analysis_view, create_contribution_analysis_sidebar),
-}
-
-# Menu label to route mapping (for menu item clicks)
-MENU_TO_ROUTE = {
-    "Home": "",
-    "Process Definition": "process-definition",
-    "Calculation Setup": "calculation-setup",
-    "Impact Overview": "impact-overview",
-    "Contribution Analysis": "contribution-analysis",
+# Route mapping for hash-based navigation
+ROUTES = {
+    "home": (create_home_view, create_home_sidebar),
+    "modeling/process-definition": (create_process_definition_view, create_process_definition_sidebar),
+    "modeling/calculation-setup": (create_calculation_setup_view, create_calculation_setup_sidebar),
+    "results/impact-overview": (create_impact_overview_view, create_impact_overview_sidebar),
+    "results/contribution-analysis": (create_contribution_analysis_view, create_contribution_analysis_sidebar),
 }
 
 class App:
     def __init__(self):
         self.menu = create_menu()
-        self.location = None  # Will be set when app is served
         
         # Create containers for main content and sidebar
         self.main_container = pn.Column(sizing_mode="stretch_width")
         self.sidebar_container = pn.Column(sizing_mode="stretch_width")
         
-        # Initialize views with default route
-        self._update_views("")
+        # Set up menu click handler
+        self.menu.param.watch(self._on_menu_select, "value")
         
-        # Watch for menu changes
-        self.menu.param.watch(self._on_menu_change, "value")
-        
-        # Set initial menu selection
-        self._sync_menu_with_location("")
+        # Initialize with home view
+        self._render_route("home")
         
         # Create the page
         self.page = pmu.Page(
@@ -65,107 +51,100 @@ class App:
         )
         
         # Set up location watching when page is served
-        pn.state.onload(self._setup_location_watching)
+        pn.state.onload(self._setup_routing)
 
-    def _setup_location_watching(self):
-        """Set up location watching when the app is loaded"""
-        self.location = pn.state.location
-        if self.location and hasattr(self.location, 'search'):
-            # Watch for location changes (browser navigation)
-            self.location.param.watch(self._on_location_change, "search")
-            # Update to current location
-            current_route = self._get_current_route()
-            self._update_views(current_route)
-            self._sync_menu_with_location(current_route)
-
-    def _label_of(self, v):
-        """Extract label from menu item"""
-        return (v.get("label") if isinstance(v, dict) else getattr(v, "label", v))
-
-    def _get_current_route(self):
-        """Get current route from location search parameters"""
-        if self.location and hasattr(self.location, 'search'):
-            search = self.location.search or ""
-            # Remove leading ? if present
-            if search.startswith("?"):
-                search = search[1:]
-            # Extract page parameter from search string
-            if "page=" in search:
-                # Parse page=value from search string
-                for param in search.split("&"):
-                    if param.startswith("page="):
-                        return param.split("=", 1)[1]
-            return ""
-        return ""
-
-    def _update_views(self, route=None):
-        """Update main and sidebar views based on route"""
-        if route is None:
-            route = self._get_current_route()
-        
-        # Get route configuration
-        route_config = ROUTE_MAP.get(route, ROUTE_MAP[""])
-        label, main_func, sidebar_func = route_config
-        
-        # Update containers
-        try:
-            main_view = main_func()
-            sidebar_view = sidebar_func()
+    def _setup_routing(self):
+        """Set up hash-based routing when the app is loaded"""
+        # Check if location is available (when running in server context)
+        if not pn.state.location:
+            return
             
+        # Set initial route if no hash is present
+        if not (pn.state.location.hash or "").lstrip("#/"):
+            self.set_route("home")
+        
+        # Initial render
+        self.render_from_location()
+        
+        # Watch for hash changes (browser back/forward, URL changes)
+        pn.state.location.param.watch(self.render_from_location, "hash")
+
+    def set_route(self, path: str):
+        """Set the current route using hash"""
+        if pn.state.location:
+            pn.state.location.hash = f"#{path}"
+
+    def get_route(self) -> str:
+        """Get current route from hash, defaulting to 'home'"""
+        if not pn.state.location:
+            return "home"
+        return (pn.state.location.hash or "").lstrip("#/").strip("/") or "home"
+
+    def resolve_view(self, path: str):
+        """Get the view functions for a given path"""
+        return ROUTES.get(path, ROUTES["home"])
+
+    def _flatten(self, items):
+        """Yield dict-like items depth-first for menu traversal"""
+        if not items:
+            return
+        for it in items:
+            if isinstance(it, dict):
+                yield it
+                # Recurse into children if any
+                children = it.get("items") or []
+                for ch in self._flatten(children):
+                    yield ch
+
+    def select_menu_item_by_path(self, path: str):
+        """Highlight the menu item whose custom 'path' matches"""
+        for it in self._flatten(self.menu.items):
+            if it.get("path") == path:
+                self.menu.value = it
+                return
+        # If nothing matches, clear selection
+        self.menu.value = None
+
+    def _on_menu_select(self, event):
+        """React to menu clicks: update hash for navigation"""
+        it = event.new
+        if not it:
+            return
+        
+        # Get path from menu item
+        path = it.get("path") if isinstance(it, dict) else None
+        if path:
+            self.set_route(path)
+
+    def render_from_location(self, _=None):
+        """Update view and menu selection based on current hash"""
+        path = self.get_route()
+        self._render_route(path)
+
+    def _render_route(self, path: str):
+        """Render the given route path"""
+        try:
+            # Get view functions for current path
+            main_func, sidebar_func = self.resolve_view(path)
+            
+            # Update main content
+            main_view = main_func()
             self.main_container.clear()
             self.main_container.append(main_view)
             
+            # Update sidebar content
+            sidebar_view = sidebar_func()
             self.sidebar_container.clear()
             self.sidebar_container.append(sidebar_view)
             
+            # Update menu selection
+            self.select_menu_item_by_path(path)
+            
         except Exception as e:
-            print(f"Error updating views for route {route}: {e}")
-            # Fallback to home
-            if route != "":
-                self._update_views("")
-
-    def _on_menu_change(self, event):
-        """Handle menu item selection"""
-        if event.new is None:
-            return
-        
-        label = self._label_of(event.new)
-        route = MENU_TO_ROUTE.get(label, "")
-        
-        # Update location to trigger route change
-        if self.location and hasattr(self.location, 'search'):
-            if route:
-                self.location.search = f"?page={route}"
-            else:
-                self.location.search = ""
-        else:
-            # Fallback for when location is not available
-            self._update_views(route)
-
-    def _on_location_change(self, event):
-        """Handle browser navigation (back/forward buttons, URL changes)"""
-        route = self._get_current_route()
-        self._update_views(route)
-        self._sync_menu_with_location(route)
-
-    def _sync_menu_with_location(self, route=None):
-        """Sync menu selection with current location"""
-        if route is None:
-            route = self._get_current_route()
-        route_config = ROUTE_MAP.get(route, ROUTE_MAP[""])
-        target_label = route_config[0]
-        
-        # Find and select the corresponding menu item
-        for item in self.menu.items:
-            if self._label_of(item) == target_label:
-                self.menu.value = item
-                return
-            # Check nested items
-            if "items" in item:
-                for sub_item in item["items"]:
-                    if self._label_of(sub_item) == target_label:
-                        self.menu.value = sub_item
-                        return
+            print(f"Error rendering route {path}: {e}")
+            # Fallback to home if there's an error
+            if path != "home":
+                self._render_route("home")
 
 # Create and serve the app
 app = App()
