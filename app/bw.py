@@ -1,6 +1,7 @@
 import bw2data as bd
 import bw2calc as bc
 from bw2data.backends import ActivityDataset as AD
+from helpers import build_nested_options
 
 
 def list_projects() -> list[str]:
@@ -33,3 +34,7 @@ def filter_results(db, name="", product="", location=""):
 def query_distinct_process_names(db):
     query = AD.select(AD.name).where(AD.database == db).distinct()
     return [entry.name for entry in query]
+
+def get_method_options():
+    method_list = [m for m in bd.methods]
+    return build_nested_options(method_list)

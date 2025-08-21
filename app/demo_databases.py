@@ -61,6 +61,6 @@ def add_chem_demo_project():
         node.new_edge(input=node_co2, amount=p["co2"], type="biosphere").save()
 
     # Simple GWP method that counts only CO2
-    bd.Method(("GWP", "example")).write([
+    bd.Method(("example source", "simple", "climate change", "GWP100")).write([
         (("biosphere", "CO2"), 1),
     ])

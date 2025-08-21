@@ -2,7 +2,7 @@ import panel as pn
 import panel_material_ui as pmu
 import pandas as pd
 import re
-from bw import list_projects, set_current_project, list_databases, list_processes
+from bw import list_projects, set_current_project, list_databases, list_processes, get_method_options
 
 # Module-level shared state for calculation setup
 _shared_state = {
@@ -134,6 +134,11 @@ def create_calculation_setup_widgets():
         set_current_project(event.new)
         select_db.disabled = False
         select_db.options = list_databases()[::-1]
+        method_select.disabled = False
+        options, levels = get_method_options()
+        method_select.options = options
+        method_select.levels = ["Source", "Method", "Category", "Indicator"]
+        method_select.layout = {"type": pn.GridBox, "ncols": 2}
 
     def _on_db_select(event):
         print(f"Database selected: {event.new}")
@@ -241,19 +246,10 @@ def create_calculation_setup_widgets():
     )
 
     method_select = pmu.NestedSelect(
-        options={
-            "GFS": {
-                "0.25 deg": ["00Z", "06Z", "12Z", "18Z"],
-                "0.5 deg": ["00Z", "12Z"],
-                "1 deg": ["00Z", "12Z"],
-            },
-            "NAME": {
-                "12 km": ["00Z", "12Z"],
-                "3 km": ["00Z", "12Z"],
-            },
-        },
-        levels=["Model", "Resolution", "Initialization"],
-        layout={"type": pn.Row, "sizing_mode": "stretch_width"}
+        options=dict(),
+        levels=[], #["Database", "Method", "Category", "Indicator"],
+        # layout={"type": pn.GridBox, "ncols": 2},
+        disabled=True,
     )
     
     return {
