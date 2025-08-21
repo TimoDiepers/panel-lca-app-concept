@@ -57,6 +57,20 @@ def create_process(db, name, product, location, unit, process_production_amount,
     ).save()
     return process
 
+def list_process_inputs(process_db, process_name, process_product, process_location):
+    """List all inputs for a given process."""
+    process = bd.get_node(database=process_db, name=process_name, product=process_product, location=process_location)
+    if not process:
+        raise ValueError("Process not found.")
+    return list(process.technosphere())
+
+def list_process_production(process_db, process_name, process_product, process_location):
+    """List all production for a given process."""
+    process = bd.get_node(database=process_db, name=process_name, product=process_product, location=process_location)
+    if not process:
+        raise ValueError("Process not found.")
+    return list(process.production())
+
 def add_input(process_db, process_name, process_product, process_location, input_db, input_name, input_product, input_location, amount):
     """Add an input to a process."""
     process = bd.get_node(database=process_db, name=process_name, product=process_product, location=process_location)
