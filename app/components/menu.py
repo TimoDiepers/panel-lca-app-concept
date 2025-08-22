@@ -29,8 +29,7 @@ def create_menu():
             },
         ],
         sizing_mode="stretch_width",
-        label="Menu",
-        margin=(0, 0, 20, 0), # space on bottom
+        dense=True,
         stylesheets=[
             ":host .MuiMenuItem-root.Mui-disabled {cursor: default !important; pointer-events: none;}"
         ]

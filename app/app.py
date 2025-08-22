@@ -31,25 +31,37 @@ ROUTES = {
 class App:
     def __init__(self):
         self.menu = create_menu()
-        
+
         # Create containers for main content and sidebar
         self.main_container = pn.Column(sizing_mode="stretch_width")
         self.sidebar_container = pn.Column(sizing_mode="stretch_width")
-        
+
         # Set up menu click handler
         self.menu.param.watch(self._on_menu_select, "value")
-        
+
         # Initialize with home view
         self._render_route("home")
-        
+
         # Create the page
         self.page = pmu.Page(
             main=[self.main_container],
-            sidebar=[self.menu, self.sidebar_container],
+            sidebar=[
+                self.menu,
+                pn.layout.Divider(
+                    stylesheets=[
+                        ":host hr {margin: 0px 10px 0 10px; border: 0; border-top: 1px solid var(--mui-palette-divider); }"
+                    ],
+                ),
+                self.sidebar_container,
+            ],
+            sidebar_width=600,
+            stylesheets=[
+                ":host .sidebar {overflow: hidden;}" # doesnt work
+            ],
             title="Demo App",
             theme_config=theme_config,
         )
-        
+
         # Set up location watching when page is served
         pn.state.onload(self._setup_routing)
 
@@ -58,14 +70,14 @@ class App:
         # Check if location is available (when running in server context)
         if not pn.state.location:
             return
-            
+
         # Set initial route if no hash is present
         if not (pn.state.location.hash or "").lstrip("#/"):
             self.set_route("home")
-        
+
         # Initial render
         self.render_from_location()
-        
+
         # Watch for hash changes (browser back/forward, URL changes)
         pn.state.location.param.watch(self.render_from_location, "hash")
 
@@ -110,7 +122,7 @@ class App:
         it = event.new
         if not it:
             return
-        
+
         # Get path from menu item
         path = it.get("path") if isinstance(it, dict) else None
         if path:
@@ -126,20 +138,20 @@ class App:
         try:
             # Get view functions for current path
             main_func, sidebar_func = self.resolve_view(path)
-            
+
             # Update main content
             main_view = main_func()
             self.main_container.clear()
             self.main_container.append(main_view)
-            
+
             # Update sidebar content
             sidebar_view = sidebar_func()
             self.sidebar_container.clear()
             self.sidebar_container.append(sidebar_view)
-            
+
             # Update menu selection
             self.select_menu_item_by_path(path)
-            
+
         except Exception as e:
             print(f"Error rendering route {path}: {e}")
             # Fallback to home if there's an error
