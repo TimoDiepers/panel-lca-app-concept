@@ -31,6 +31,7 @@ ROUTES = {
 class App:
     def __init__(self):
         self.menu = create_menu()
+        self.theme_toggle = pmu.ThemeToggle(styles={"position": "fixed", "right": "0", "zIndex": "10001"})
 
         # Create containers for main content and sidebar
         self.main_container = pn.Column(sizing_mode="stretch_width")
@@ -43,24 +44,54 @@ class App:
         self._render_route("home")
 
         # Create the page
-        self.page = pmu.Page(
-            main=[self.main_container],
-            sidebar=[
-                self.menu,
-                pn.layout.Divider(
-                    stylesheets=[
-                        ":host hr {margin: 0px 10px 0 10px; border: 0; border-top: 1px solid var(--mui-palette-divider); }"
-                    ],
-                ),
-                self.sidebar_container,
-            ],
-            sidebar_width=600,
-            stylesheets=[
-                ":host .sidebar {overflow: hidden;}" # doesnt work
-            ],
-            title="Demo App",
+
+        self.toggles = pmu.Row(
+            self.theme_toggle,
+            # pmu.SpeedDial(
+            #     icon="menu",
+            #     items=[
+            #         {"label": "Home", "icon": "home", "color": "primary"},
+            #         {"label": "Setup", "icon": "handyman", "color": "primary"},
+            #         {"label": "Results", "icon": "query_stats_rounded", "color": "primary"},
+            #     ],
+            #     margin=15,
+            #     # open_icon="handyman",
+            #     width=120,
+            # ),
+            pmu.Tabs(
+                ("Home", None), ("Setup", None), ("Results", None),
+            ),
             theme_config=theme_config,
         )
+
+        self.page = pmu.Column(
+            self.toggles,
+            self.menu,
+            pmu.Row(
+            self.sidebar_container,
+            self.main_container,
+            theme_config=theme_config,
+            )
+
+        )
+        # self.page = pmu.Page(
+        #     main=[self.main_container],
+        #     sidebar=[
+        #         self.menu,
+        #         pn.layout.Divider(
+        #             stylesheets=[
+        #                 ":host hr {margin: 0px 10px 0 10px; border: 0; border-top: 1px solid var(--mui-palette-divider); }"
+        #             ],
+        #         ),
+        #         self.sidebar_container,
+        #     ],
+        #     sidebar_width=600,
+        #     stylesheets=[
+        #         ":host .sidebar {overflow: hidden;}" # doesnt work
+        #     ],
+        #     title="Demo App",
+        #     theme_config=theme_config,
+        # )
 
         # Set up location watching when page is served
         pn.state.onload(self._setup_routing)
