@@ -2,7 +2,7 @@ import panel as pn
 import panel_material_ui as pmu
 import pandas as pd
 import re
-from bw import list_projects, set_current_project, list_databases, list_processes, get_method_options
+from bw import list_projects, set_current_project, list_databases, list_processes, get_method_options, list_process_production, list_process_inputs
 
 # Module-level shared state for calculation setup
 _shared_state = {
@@ -10,6 +10,7 @@ _shared_state = {
     'current_db': None,
     'df_processes': pd.DataFrame(columns=["Product", "Process", "Location"]),
     'widgets': None,
+    'selected_process': None
 }
 
 def get_calculation_setup_widgets():
@@ -59,7 +60,6 @@ def create_calculation_setup_widgets():
     processes_tabulator = pn.widgets.Tabulator(
         _shared_state['df_processes'],
         sizing_mode="stretch_both",
-        # layout="fit_data_table",
         widths={
             "Product": "25%",
             "Process": "53%",
@@ -67,7 +67,6 @@ def create_calculation_setup_widgets():
         },
         name="Processes",
         pagination="remote",
-        page_size=10,
         show_index=False,
         sorters=[{"field": "Product", "dir": "asc"}],
         disabled=True,
@@ -88,14 +87,7 @@ def create_calculation_setup_widgets():
             "delete": "<span class='material-icons'>delete_forever</span>",
         },
         sizing_mode="stretch_width",
-        # layout="fit_data_table",
-        widths={
-            "Amount": "10%",
-            "Product": "25%",
-            "Process": "50%",
-            "Location": "10%",
-            "delete": "5%",
-        },
+        layout="fit_data_stretch",
         name="Processes",
         show_index=False,
         sorters=[{"field": "Product", "dir": "asc"}],
@@ -140,6 +132,9 @@ def create_calculation_setup_widgets():
             ]
         )
         processes_tabulator.value = _shared_state['df_processes']
+        processes_tabulator.pagination="remote"
+        processes_tabulator.page_size = None
+        processes_tabulator.layout = "fit_data_stretch"
         # processes_tabulator.layout = "fit_data_table"
         select_db.loading = False
         processes_tabulator.visible = True
@@ -162,6 +157,48 @@ def create_calculation_setup_widgets():
             fu_df = pd.concat([fu_df, clicked], ignore_index=True)
             functional_unit.value = fu_df
             calculate_button.disabled = functional_unit.value.empty
+            print(clicked)
+            product_name.value = clicked["Product"].iloc[0]
+            process_name.value = clicked["Process"].iloc[0]
+            location_name.value = clicked["Location"].iloc[0]
+            process_production = list_process_production(
+                _shared_state['current_db'],
+                clicked["Process"].iloc[0],
+                clicked["Product"].iloc[0],
+                clicked["Location"].iloc[0]
+            )
+            outputs.value = pd.DataFrame(
+                [
+                    (
+                        e.amount,
+                        e.input["reference product"],
+                        e.input["name"],
+                        e.input["location"],
+                    )
+                    for e in process_production
+                ],
+                columns=["Amount", "Product", "Process", "Location"],
+            )
+            process_inputs = list_process_inputs(
+                _shared_state['current_db'],
+                clicked["Process"].iloc[0],
+                clicked["Product"].iloc[0],
+                clicked["Location"].iloc[0]
+            )
+            inputs.value = pd.DataFrame(
+                [
+                    (
+                        e.amount,
+                        e.input["reference product"],
+                        e.input["name"],
+                        e.input["location"],
+                    )
+                    for e in process_inputs
+                ],
+                columns=["Amount", "Product", "Process", "Location"],
+            )
+            # description.value = clicked["Description"].iloc[0]
+
         except Exception as e:
             print(f"Process row click error: {e}")
 
@@ -176,7 +213,7 @@ def create_calculation_setup_widgets():
         except Exception as e:
             print(f"Functional unit delete error: {e}")
         calculate_button.disabled = functional_unit.value.empty
-        
+
     # Wire up callbacks
     select_project.param.watch(_on_project_select, "value")
     select_db.param.watch(_on_db_select, "value")
@@ -189,7 +226,7 @@ def create_calculation_setup_widgets():
         # layout={"type": pn.GridBox, "ncols": 2},
         disabled=True,
     )
-    
+
     calculate_button = pmu.widgets.Button(
         name="Calculate & Show Results",
         icon="calculate",
@@ -206,6 +243,71 @@ def create_calculation_setup_widgets():
 
     calculate_button.on_click(_on_calculate_click)
 
+    ### Edit Processes
+    product_name = pmu.widgets.TextInput(
+        label="Product Name",
+        sizing_mode="stretch_width",
+    )
+
+    process_name = pmu.widgets.TextInput(
+        label="Process Name",
+        sizing_mode="stretch_width",
+    )
+
+    location_name = pmu.widgets.TextInput(
+        label="Process Location",
+        sizing_mode="stretch_width",
+    )
+
+    description = pmu.widgets.TextAreaInput(
+        label="Process Description",
+        sizing_mode="stretch_width",
+    )
+
+    outputs = pn.widgets.Tabulator(
+        pd.DataFrame(columns=["Amount", "Product", "Process", "Location"]),
+        sizing_mode="stretch_width",
+        layout="fit_data_stretch",
+        # widths={
+        #     "Amount": "10%",
+        #     "Product": "25%",
+        #     "Process": "50%",
+        #     "Location": "15%",
+        # },
+        show_index=False,
+        editors={
+            "Amount": "number",
+            "Product": None,
+            "Process": None,
+            "Location": None,
+        },
+        stylesheets=[
+            ":host .tabulator {border-radius: var(--mui-shape-borderRadius);}"
+        ],
+    )
+
+    inputs = pn.widgets.Tabulator(
+        pd.DataFrame(columns=["Amount", "Product", "Process", "Location"]),
+        sizing_mode="stretch_both",
+        layout="fit_data_stretch",
+        # widths={
+        #     "Amount": "10%",
+        #     "Product": "25%",
+        #     "Process": "50%",
+        #     "Location": "15%",
+        # },
+        show_index=False,
+        editors={
+            "Amount": "number",
+            "Product": None,
+            "Process": None,
+            "Location": None,
+        },
+        stylesheets=[
+            ":host .tabulator {border-radius: var(--mui-shape-borderRadius);}"
+        ],
+    )
+
     return {
         'no_db_alert': no_db_alert,
         'select_project': select_project,
@@ -214,9 +316,15 @@ def create_calculation_setup_widgets():
         'functional_unit': functional_unit,
         'method_select': method_select,
         'calculate_button': calculate_button,
+        'product_name': product_name,
+        'process_name': process_name,
+        'location_name': location_name,
+        'description': description,
+        'inputs': inputs,
+        'outputs': outputs,
     }
 
-def create_calculation_setup_view():
+def create_calculation_setup_right_col():
     """Create the calculation setup page view"""
     widgets = get_calculation_setup_widgets()
 
@@ -243,15 +351,29 @@ Select the method to use for the analysis.
         widgets['method_select'],
         sizing_mode="stretch_width",
     )
-
-    return pmu.Column(
+    calc_setup = pmu.Column(
         fu_section,
         method_section,
         widgets['calculate_button'],
         sizing_mode="stretch_width",
     )
+    
+    process_edits = pmu.Column(
+        widgets['product_name'],
+        widgets['process_name'],
+        widgets['location_name'],
+        widgets['description'],
+        widgets['outputs'],
+        widgets['inputs'],
+        sizing_mode="stretch_width",
+    )
 
-def create_calculation_setup_sidebar():
+    return pmu.Tabs(
+        ("Edit Processes", process_edits),
+        ("Calculation Setup", calc_setup),
+    )
+
+def create_calculation_setup_left_col():
     """Create the calculation setup page sidebar"""
     widgets = get_calculation_setup_widgets()
 
@@ -268,5 +390,13 @@ def create_calculation_setup_sidebar():
             sizing_mode="stretch_width",
         ),
         widgets['processes_tabulator'],
+        width=500,
         # sizing_mode="stretch_both",
+    )
+
+def create_calculation_setup_view():
+    """Create the calculation setup page view"""
+    return pmu.Row(
+        create_calculation_setup_left_col(),
+        create_calculation_setup_right_col(),
     )

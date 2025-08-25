@@ -71,6 +71,7 @@ def list_process_production(process_db, process_name, process_product, process_l
         raise ValueError("Process not found.")
     return list(process.production())
 
+
 def add_input(process_db, process_name, process_product, process_location, input_db, input_name, input_product, input_location, amount):
     """Add an input to a process."""
     process = bd.get_node(database=process_db, name=process_name, product=process_product, location=process_location)

@@ -8,7 +8,7 @@ from demo_databases import add_chem_demo_project
 from components.menu import create_menu
 from pages.home import create_home_view, create_home_sidebar
 from pages.modeling.process_definition import create_process_definition_view, create_process_definition_sidebar
-from pages.modeling.calculation_setup import create_calculation_setup_view, create_calculation_setup_sidebar
+from pages.modeling.calculation_setup import create_calculation_setup_view
 from pages.results.impact_overview import create_impact_overview_view, create_impact_overview_sidebar
 from pages.results.contribution_analysis import create_contribution_analysis_view, create_contribution_analysis_sidebar
 
@@ -23,7 +23,7 @@ add_chem_demo_project()
 ROUTES = {
     "home": (create_home_view, create_home_sidebar),
     "modeling/process-definition": (create_process_definition_view, create_process_definition_sidebar),
-    "modeling/calculation-setup": (create_calculation_setup_view, create_calculation_setup_sidebar),
+    "modeling/calculation-setup": (create_calculation_setup_view, lambda: None),
     "results/impact-overview": (create_impact_overview_view, create_impact_overview_sidebar),
     "results/contribution-analysis": (create_contribution_analysis_view, create_contribution_analysis_sidebar),
 }
@@ -54,11 +54,9 @@ class App:
                 ),
                 self.sidebar_container,
             ],
-            sidebar_width=600,
-            stylesheets=[
-                ":host .sidebar {overflow: hidden;}" # doesnt work
-            ],
-            title="Demo App",
+            sidebar_open=False,
+            sidebar_variant="temporary",
+            title="PMI-LCA Tool",
             theme_config=theme_config,
         )
 
@@ -160,7 +158,7 @@ class App:
 
 # Create and serve the app
 app = App()
-app.page.servable(title="Demo App")
+app.page.servable(title="PMI-LCA Tool")
 
 if __name__ == "__main__":
     pn.serve(app.page, show=True)
