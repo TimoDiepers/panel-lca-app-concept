@@ -108,7 +108,7 @@ def create_calculation_setup_widgets():
 
 
     dialog_new_process = pmu.Dialog("""
-    # Create a new process
+# Ceate a new process
 
 You will be able to enter new process data here.
 """,

@@ -15,7 +15,13 @@ The aim of this demo is to illustrate the potential of transforming current spre
 
 In the complete implementation, the app would support real datasets, robust analytics, and advanced visualization features, enabling researchers, industry, and policymakers to make better-informed decisions.  
 
-With this proposal, we are seeking approval and support to carry out the full development. This demo is only a first glimpse—what follows could become a powerful, widely applicable decision-support platform.  
+With this proposal, we are seeking approval and support to carry out the full development. This demo is only a first glimpse—what follows could become a powerful, widely applicable decision-support platform. 
+
+  
+*Brought to you by:*
+
+![Institute of Technical Thermodynamics, RWTH Aachen University](https://www.ltt.rwth-aachen.de/global/show_picture.asp?id=aaaaaaaaaanvmia)
+
 """
         )
     )
