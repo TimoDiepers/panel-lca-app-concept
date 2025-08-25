@@ -1,4 +1,4 @@
 lzma # must be loaded explicitly because https://pyodide.org/en/stable/usage/wasm-constraints.html#optional-modules
 typing-extensions==4.12.0 # ???
 panel-material-ui
-panel-lca-app-concept==0.1.2
+panel-lca-app-concept==0.1.3
