@@ -33,7 +33,7 @@ dependencies = [
     "bw2calc==2.1",
     "bw2io==0.9.11",
     "panel",
-    "panel_material_ui",
+    "panel-material-ui",
     "plotly",
     # dependencies as strings with quotes, e.g. "foo"
     # You can add version requirements like "foo>2.0"
