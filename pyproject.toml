@@ -38,15 +38,15 @@ dependencies = [
 ]
 
 [project.urls]
-source = "https://github.com/TimoDiepers/pmi-lca-tool-concept"
-homepage = "https://github.com/TimoDiepers/pmi-lca-tool-concept"
-tracker = "https://github.com/TimoDiepers/pmi-lca-tool-concept/issues"
+source = "https://github.com/TimoDiepers/panel-lca-app-concept"
+homepage = "https://github.com/TimoDiepers/panel-lca-app-concept"
+tracker = "https://github.com/TimoDiepers/panel-lca-app-concept/issues"
 
 [project.optional-dependencies]
 # Getting recursive dependencies to work is a pain, this
 # seems to work, at least for now
 testing = [
-    "pmi-lca-tool-concept",
+    "panel-lca-app-concept",
     "pytest",
     "pytest-cov",
     "python-coveralls"
