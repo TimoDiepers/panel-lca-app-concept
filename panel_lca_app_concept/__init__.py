@@ -5,4 +5,4 @@ __all__ = (
     # Add functions and variables you want exposed in `panel_lca_app_concept.` namespace here
 )
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"

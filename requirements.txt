@@ -2,3 +2,4 @@ panel
 panel-material-ui
 brightway25
 plotly
+panel-lca-app-concept
