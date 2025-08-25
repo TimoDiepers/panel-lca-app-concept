@@ -1,7 +1,7 @@
 import panel as pn
 import panel_material_ui as pmu
-from data import STAGES, PRODUCTS, compute_footprint
-from charts import plot_stacked_bars, update_stacked_bars, plot_sankey, update_sankey
+from panel_lca_app_concept.data import STAGES, PRODUCTS, compute_footprint
+from panel_lca_app_concept.charts import plot_stacked_bars, update_stacked_bars, plot_sankey, update_sankey
 
 # Module-level shared state for results
 _shared_state = {

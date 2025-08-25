@@ -1,7 +1,7 @@
 import bw2data as bd
 import bw2calc as bc
 from bw2data.backends import ActivityDataset as AD
-from helpers import build_nested_options
+from panel_lca_app_concept.helpers import build_nested_options
 
 
 def list_projects() -> list[str]:

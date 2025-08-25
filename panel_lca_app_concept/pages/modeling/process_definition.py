@@ -1,7 +1,7 @@
 import panel as pn
 import panel_material_ui as pmu
 import pandas as pd
-from bw import list_projects, set_current_project, list_databases, list_processes, create_process, add_input, list_process_inputs
+from panel_lca_app_concept.bw import list_projects, set_current_project, list_databases, list_processes, create_process, add_input, list_process_inputs
 
 # Module-level shared state for process definition
 _shared_state = {

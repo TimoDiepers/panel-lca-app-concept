@@ -1,15 +1,15 @@
 import panel as pn
 import panel_material_ui as pmu
 
-from theming import theme_config
-from demo_databases import add_chem_demo_project
+from panel_lca_app_concept.theming import theme_config
+from panel_lca_app_concept.demo_databases import add_chem_demo_project
 
 # Import page components
-from pages.home import create_home_view
-from pages.modeling.process_definition import create_process_definition_view
-from pages.modeling.calculation_setup import create_calculation_setup_view
-from pages.results.impact_overview import create_impact_overview_view
-from pages.results.contribution_analysis import create_contribution_analysis_view
+from panel_lca_app_concept.pages.home import create_home_view
+from panel_lca_app_concept.pages.modeling.process_definition import create_process_definition_view
+from panel_lca_app_concept.pages.modeling.calculation_setup import create_calculation_setup_view
+from panel_lca_app_concept.pages.results.impact_overview import create_impact_overview_view
+from panel_lca_app_concept.pages.results.contribution_analysis import create_contribution_analysis_view
 
 # Initialize Panel extensions
 pn.extension("plotly", "tabulator", theme="dark", notifications=True)

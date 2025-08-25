@@ -1,8 +1,7 @@
 import panel as pn
 import panel_material_ui as pmu
 import pandas as pd
-import re
-from bw import list_projects, set_current_project, list_databases, list_processes, get_method_options, list_process_production, list_process_inputs
+from panel_lca_app_concept.bw import list_projects, set_current_project, list_databases, list_processes, get_method_options, list_process_production, list_process_inputs
 
 # Module-level shared state for calculation setup
 _shared_state = {

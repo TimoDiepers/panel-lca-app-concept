@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 import pandas as pd
-from data import STAGES, PRODUCTS, REACTANTS, PROCESSES, PRODUCT_MAT_SHARES, MAT_PROC_SHARES
-from theming import current_bg_color
+from panel_lca_app_concept.data import STAGES, PRODUCTS, REACTANTS, PROCESSES, PRODUCT_MAT_SHARES, MAT_PROC_SHARES
+from panel_lca_app_concept.theming import current_bg_color
 
 def _prep(df: pd.DataFrame, norm: bool) -> pd.DataFrame:
     if not norm: return df
