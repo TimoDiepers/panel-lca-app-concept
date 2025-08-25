@@ -6,10 +6,8 @@ from panel_lca_app_concept.demo_databases import add_chem_demo_project
 
 # Import page components
 from panel_lca_app_concept.pages.home import create_home_view
-from panel_lca_app_concept.pages.modeling.process_definition import create_process_definition_view
-from panel_lca_app_concept.pages.modeling.calculation_setup import create_calculation_setup_view
-from panel_lca_app_concept.pages.results.impact_overview import create_impact_overview_view
-from panel_lca_app_concept.pages.results.contribution_analysis import create_contribution_analysis_view
+from panel_lca_app_concept.pages.calculation_setup import create_calculation_setup_view
+from panel_lca_app_concept.pages.impact_overview import create_impact_overview_view
 
 # Initialize Panel extensions
 pn.extension("plotly", "tabulator", theme="dark", notifications=True)
@@ -21,10 +19,8 @@ add_chem_demo_project()
 # Route mapping for hash-based navigation
 ROUTES = {
     "home": create_home_view,
-    "modeling/process-definition": create_process_definition_view,
     "modeling/calculation-setup": create_calculation_setup_view,
     "results/impact-overview": create_impact_overview_view,
-    "results/contribution-analysis": create_contribution_analysis_view,
 }
 
 class App:
@@ -73,10 +69,8 @@ class App:
 
         self.BUTTON_MAPPING = {
             "home": self.home_button,
-            "modeling/process-definition": self.modeling_button,
             "modeling/calculation-setup": self.modeling_button,
             "results/impact-overview": self.results_button,
-            "results/contribution-analysis": self.results_button,
         }
 
         nav = pn.Row(
