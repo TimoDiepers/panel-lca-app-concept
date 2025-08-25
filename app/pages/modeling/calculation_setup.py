@@ -31,9 +31,9 @@ def create_calculation_setup_widgets():
         options=list_projects(),
         searchable=True,
         sizing_mode="stretch_width",
-        stylesheets=[
-            ":host .MuiSelect-select {padding: 10px;}"
-        ]
+        # stylesheets=[
+        #     ":host .MuiSelect-select {padding: 10px;}"
+        # ]
     )
 
     select_db = pmu.widgets.Select(
@@ -42,9 +42,9 @@ def create_calculation_setup_widgets():
         options=["Select project first"],
         disabled=True,
         sizing_mode="stretch_width",        
-        stylesheets=[
-            ":host .MuiSelect-select {padding: 10px;}"
-        ]
+        # stylesheets=[
+        #     ":host .MuiSelect-select {padding: 10px;}"
+        # ]
     )
     no_db_alert = pmu.Alert(
         title="Select Project & Database",
@@ -80,6 +80,55 @@ def create_calculation_setup_widgets():
             ":host .tabulator {border-radius: var(--mui-shape-borderRadius);}"
         ],
         )
+    
+    add_process_button = pmu.widgets.Button(
+        label="Create New Process",
+        icon="add",
+        variant="contained",
+        color="primary",
+        sizing_mode="stretch_width",
+        # stylesheets=[
+        #     ":host .MuiButton-root {margin-top: 12px;}"
+        # ]
+    )
+    
+    dialog_create__button = pmu.widgets.Button(
+        label="Create",
+        icon="check",
+        variant="contained",
+        color="primary",
+        sizing_mode="stretch_width",
+    )
+    dialog_discard_button = pmu.widgets.Button(
+        label="Discard",
+        icon="delete",
+        variant="outlined",
+        color="default",
+        sizing_mode="stretch_width",
+    )
+
+
+    dialog_new_process = pmu.Dialog("""
+    # Create a new process
+
+You will be able to enter new process data here.
+""",
+        pn.Row(dialog_create__button, dialog_discard_button),
+        close_on_click=True,
+        # show_close_button=True,
+    )
+
+    add_process_button.js_on_click(args={'dialog': dialog_new_process}, code="dialog.data.open = true")
+    
+    def _on_create_new_process(event):
+        pn.state.notifications.success("New process created successfully! Except not, as this is a demo.")
+    def _on_discard_process(event):
+        pn.state.notifications.info("Process creation discarded.")
+        
+    dialog_create__button.js_on_click(args={'dialog': dialog_new_process}, code="dialog.data.open = false")
+    dialog_create__button.on_click(_on_create_new_process)
+    dialog_discard_button.js_on_click(args={'dialog': dialog_new_process}, code="dialog.data.open = false")
+    dialog_discard_button.on_click(_on_discard_process)
 
     functional_unit = pn.widgets.Tabulator(
         pd.DataFrame(columns=["Amount", "Product", "Process", "Location"]),
@@ -313,6 +362,8 @@ def create_calculation_setup_widgets():
         'select_project': select_project,
         'select_db': select_db,
         'processes_tabulator': processes_tabulator,
+        'add_process_button': add_process_button,
+        'dialog_new_process': dialog_new_process,
         'functional_unit': functional_unit,
         'method_select': method_select,
         'calculate_button': calculate_button,
@@ -390,6 +441,8 @@ def create_calculation_setup_left_col():
             sizing_mode="stretch_width",
         ),
         widgets['processes_tabulator'],
+        widgets['add_process_button'],
+        widgets['dialog_new_process'],
         width=500,
         # sizing_mode="stretch_both",
     )

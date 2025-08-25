@@ -89,17 +89,17 @@ def create_impact_overview_widgets():
 def create_impact_overview_view():
     """Create the impact overview page view"""
     widgets = get_impact_overview_widgets()
-    
+
     header = pmu.pane.Markdown(
-        "Stacked bar chart of carbon footprint by stage and product."
+        "Explore PMI-LCA results through interactive visualizations."
     )
 
-    # results_tabs = pn.Tabs(
-    #     ("Stacked Bars", ),
-    #     ("Sankey", widgets['sankey_pane']),
-    # )
-    
-    return pmu.Column(header, widgets['plotly_pane'], sizing_mode="stretch_width")
+    results_tabs = pn.Tabs(
+        ("Stacked Bars", widgets['plotly_pane']),
+        ("Sankey", widgets['sankey_pane']),
+    )
+
+    return pmu.Container(header, results_tabs)
 
 def create_impact_overview_sidebar():
     """Create the impact overview page sidebar"""

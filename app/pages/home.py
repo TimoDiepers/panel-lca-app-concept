@@ -1,17 +1,26 @@
 import panel_material_ui as pmu
 
+
 def create_home_view():
     """Create the home page view"""
-    return pmu.Column(
-        pmu.pane.Markdown("# Home"),
+    content = pmu.Container(
         pmu.pane.Markdown(
-            "Welcome to a Demo.\n\n"
-            "- Go to Setup to choose a project, database, and filter processes.\n"
-            "- Open Results to explore stacked bars and Sankey diagrams.\n\n"
-            "This is a placeholder home page with explanatory text."
-        ),
-        sizing_mode="stretch_width",
+"""
+
+# Welcome to the PMI-LCA Tool
+
+This prototype is part of our proposal to develop a full-featured web-based tool for calculating sustainability metrics using Process Mass Intensity (PMI) and Life Cycle Assessment (LCA).  
+
+The aim of this demo is to illustrate the potential of transforming current spreadsheet-based PMI-LCA workflows into a modern, interactive, and scalable web application. It highlights how such a tool can improve usability, streamline workflows, and make results easier to explore and communicate.  
+
+In the complete implementation, the app would support real datasets, robust analytics, and advanced visualization features, enabling researchers, industry, and policymakers to make better-informed decisions.  
+
+With this proposal, we are seeking approval and support to carry out the full development. This demo is only a first glimpse—what follows could become a powerful, widely applicable decision-support platform.  
+"""
+        )
     )
+    return content
+
 
 def create_home_sidebar():
     """Create the home page sidebar"""

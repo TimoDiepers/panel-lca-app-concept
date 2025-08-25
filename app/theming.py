@@ -3,8 +3,8 @@ import panel as pn
 theme_config = {
     "light": {
         "palette": {
-            "primary": {"main": "#5a4fcf"},
-            "secondary": {"main": "#4fcfb3"},
+            "primary": {"main": "#00549F"},
+            "secondary": {"main": "#E30066"},
             "background": {"default": "#f7f7fb", "paper": "#ffffff"},
             "text": {"primary": "#1c1b29", "secondary": "#4b4a5e"},
         },
@@ -12,8 +12,8 @@ theme_config = {
     },
     "dark": {
         "palette": {
-            "primary": {"main": "#5a4fcf"},
-            "secondary": {"main": "#4fcfb3"},
+            "primary": {"main": "#00549F"},
+            "secondary": {"main": "#E30066"},
             "background": {"default": "#0f0f17", "paper": "#1a1a24"},
             "text": {"primary": "#e8e7f5", "secondary": "#b6b4d6"},
         },
