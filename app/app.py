@@ -10,7 +10,7 @@ from panel_lca_app_concept.pages.calculation_setup import create_calculation_set
 from panel_lca_app_concept.pages.impact_overview import create_impact_overview_view
 
 # Initialize Panel extensions
-pn.extension("plotly", "tabulator", theme="dark", notifications=True)
+pn.extension("plotly", "tabulator", notifications=True)
 pn.config.css_files.append("https://fonts.googleapis.com/icon?family=Material+Icons+Outlined")
 
 # Initialize demo data
