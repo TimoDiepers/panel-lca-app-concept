@@ -75,7 +75,7 @@ class App:
 
         nav = pn.Row(
            self.home_button, self.modeling_button, self.results_button,
-            width=600,
+            # width=600,
             # sizing_mode="stretch_width",
             styles={
                 "align-items": "center",
@@ -84,6 +84,14 @@ class App:
                 "margin-right": "auto",
             },
         )
+        
+        logout_button = pmu.IconButton(
+            icon="logout",
+            size="2em",
+            color="light",
+        )
+        
+        logout_button.js_on_click(code="""window.location.href = './logout'""")
 
         # self.page = pn.Column(
         #     nav, self.main_container,
@@ -92,7 +100,7 @@ class App:
         # )
         # Create the page
         self.page = pmu.Page(
-            header=[nav],
+            header=[nav, logout_button],
             main=[self.main_container],
             # sidebar=[
             #     self.menu,
