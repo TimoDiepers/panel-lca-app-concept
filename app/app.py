@@ -9,6 +9,7 @@ from panel_lca_app_concept.pages.impact_overview import create_impact_overview_v
 
 # Initialize Panel extensions
 pn.extension("plotly", "tabulator", notifications=True)
+pn.state.location.sync = True
 pn.config.css_files.append("https://fonts.googleapis.com/icon?family=Material+Icons+Outlined")
 
 # Initialize demo data
@@ -25,6 +26,7 @@ class App:
     def __init__(self):
         # Create containers for main content
         self.main_container = pn.Column(sizing_mode="stretch_width")
+        self._last_route = None
 
         # Create nav buttons BEFORE any rendering so highlight logic works
         self.home_button = pmu.Button(
@@ -116,7 +118,29 @@ class App:
         )
 
         # Set up routing once the page is loaded (ensures hash is available on reload)
-        pn.state.onload(self._setup_routing)
+        # after building self.page
+        initialized = {"done": False}
+        def _init(_=None):
+            if initialized["done"]: 
+                return
+            initialized["done"] = True
+            self._setup_routing()
+
+        pn.state.onload(_init)
+        _init()  # also call once in case onload timing differs in Pyodide
+
+        # Fallback polling in Pyodide: detect hash changes even if events are missed
+        def _poll_hash():
+            try:
+                if pn.state.location:
+                    current = self.get_route()
+                    if current != self._last_route:
+                        self.render_from_location()
+            except Exception:
+                pass
+
+        # Poll every 300 ms (adjust if needed)
+        pn.state.add_periodic_callback(_poll_hash, period=300, start=True)
 
     def _setup_routing(self):
         """Set up hash-based routing when the app is loaded"""
@@ -178,12 +202,14 @@ class App:
         self._highlight_active_button(path)
         if pn.state.location:
             pn.state.location.hash = f"#{path}"
+            self.render_from_location()
 
     def get_route(self) -> str:
-        """Get current route from hash, defaulting to 'home'"""
         if not pn.state.location:
             return "home"
-        return (pn.state.location.hash or "").lstrip("#/").strip("/") or "home"
+        h = pn.state.location.hash or ""
+        h = h.lstrip("#/").strip("/")       # safe either way
+        return h or "home"
 
     def resolve_view(self, path: str):
         """Get the view function for a given path"""
@@ -198,17 +224,25 @@ class App:
     def _render_route(self, path: str):
         """Render the given route path"""
         try:
+            self._last_route = path
+
             # Get view function for current path
             main_func = self.resolve_view(path)
 
-            # Update main content
+            # Build the new view
             main_view = main_func()
-            self.main_container.clear()
-            self.main_container.append(main_view)
+
+            # ⬇️ Force a full container replacement (more reliable in Pyodide)
+            new_container = pn.Column(main_view, sizing_mode="stretch_width")
+            self.main_container = new_container
+            try:
+                # Replace the page's main area content
+                self.page.main[:] = [new_container]
+            except Exception:
+                self.page.main = [new_container]
 
         except Exception as e:
             print(f"Error rendering route {path}: {e}")
-            # Fallback to home if there's an error
             if path != "home":
                 self._render_route("home")
 
