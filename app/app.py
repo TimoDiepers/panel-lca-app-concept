@@ -1,6 +1,9 @@
 import panel as pn
 import panel_material_ui as pmu
 
+import panel_lca_app_concept as lcapp
+print("Using panel_lca_app_concept version", lcapp.__version__)
+
 from panel_lca_app_concept.theming import theme_config
 from panel_lca_app_concept.demo_databases import add_chem_demo_project
 
@@ -217,6 +220,3 @@ class App:
 # Create and serve the app
 app = App()
 app.page.servable(title="PMI-LCA Tool")
-
-if __name__ == "__main__":
-    pn.serve(app.page, show=True)

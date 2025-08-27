@@ -1,5 +1,9 @@
 import plotly.graph_objects as go
 import pandas as pd
+import panel_lca_app_concept as lcapp
+
+print("Using panel_lca_app_concept version", lcapp.__version__)
+
 from panel_lca_app_concept.data import STAGES, PRODUCTS, REACTANTS, PROCESSES, PRODUCT_MAT_SHARES, MAT_PROC_SHARES
 from panel_lca_app_concept.theming import current_bg_color
 
