@@ -3,8 +3,6 @@ import panel_material_ui as pmu
 
 from panel_lca_app_concept.theming import theme_config
 from panel_lca_app_concept.demo_databases import add_chem_demo_project
-
-# Import page components
 from panel_lca_app_concept.pages.home import create_home_view
 from panel_lca_app_concept.pages.calculation_setup import create_calculation_setup_view
 from panel_lca_app_concept.pages.impact_overview import create_impact_overview_view
