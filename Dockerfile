@@ -10,7 +10,7 @@ ENV BRIGHTWAY2_DIR=/tmp/
 
 RUN mkdir -p "$BRIGHTWAY2_DIR" "$XDG_CACHE_HOME" "$XDG_DATA_HOME" && chmod -R 777 /code
 
-# Copy source code first
+# Copy source code
 COPY . .
 
 # Install requirements and the package itself
@@ -20,3 +20,4 @@ RUN python3 -m pip install --no-cache-dir --upgrade -r /code/requirements.txt
 RUN python3 -m pip install --no-cache-dir --upgrade -e .
 
 CMD ["panel", "serve", "/code/app/app.py", "--address", "0.0.0.0", "--port", "7860", "--allow-websocket-origin", "*"]
+# CMD ["panel", "serve", "/code/app/app.py", "--basic-auth", "password", "--cookie-secret", "secret", "--basic-login-template", "/code/app/login_template.html", "--logout-template", "/code/app/logout_template.html", "--address", "0.0.0.0", "--port", "7860", "--allow-websocket-origin", "*"]

@@ -7,7 +7,7 @@ def create_home_view():
         pmu.pane.Markdown(
 """
 
-# Welcome to the PMI-LCA Tool
+# Welcome to the PMI-LCA WebApp
 
 This prototype is part of our proposal to develop a full-featured web-based tool for calculating sustainability metrics using Process Mass Intensity (PMI) and Life Cycle Assessment (LCA).  
 

@@ -111,7 +111,7 @@ class App:
             # ],
             # sidebar_open=False,
             # sidebar_variant="temporary",
-            title="PMI-LCA Tool",
+            title="PMI-LCA WebApp",
             theme_config=theme_config,
         )
 
@@ -214,4 +214,4 @@ class App:
 
 # Create and serve the app
 app = App()
-app.page.servable(title="PMI-LCA Tool")
+app.page.servable(title="PMI-LCA WebApp")
