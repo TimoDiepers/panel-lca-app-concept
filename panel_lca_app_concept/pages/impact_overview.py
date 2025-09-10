@@ -94,7 +94,7 @@ def create_impact_overview_view():
         "Explore PMI-LCA results through interactive visualizations."
     )
 
-    results_tabs = pn.Tabs(
+    results_tabs = pmu.Tabs(
         ("Stacked Bars", widgets['plotly_pane']),
         ("Sankey", widgets['sankey_pane']),
     )
