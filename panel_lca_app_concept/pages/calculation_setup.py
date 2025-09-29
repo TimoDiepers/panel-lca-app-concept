@@ -1,27 +1,57 @@
 import panel as pn
 import panel_material_ui as pmu
 import pandas as pd
-from panel_lca_app_concept.bw import list_projects, set_current_project, list_databases, list_processes, get_method_options, list_process_production, list_process_inputs
+from panel_lca_app_concept.bw import (
+    list_projects,
+    set_current_project,
+    list_databases,
+    list_processes,
+    get_method_options,
+    list_process_production,
+    list_process_inputs,
+)
 
-# Module-level shared state for calculation setup
-_shared_state = {
-    'current_project': None,
-    'current_db': None,
-    'df_processes': pd.DataFrame(columns=["Product", "Process", "Location"]),
-    'widgets': None,
-    'selected_process': None
-}
+
+def _new_state():
+    """Create a fresh default state mapping."""
+    return {
+        "current_project": None,
+        "current_db": None,
+        "df_processes": pd.DataFrame(columns=["Product", "Process", "Location"]),
+        "widgets": None,
+        "selected_process": None,
+    }
+
+
+_fallback_state = _new_state()
+
+
+def _get_state():
+    """Return state isolated per user session when possible."""
+    doc = getattr(pn.state, "curdoc", None)
+    if doc is None:
+        return _fallback_state
+
+    state = getattr(doc, "_calculation_setup_state", None)
+    if state is None:
+        state = _new_state()
+        setattr(doc, "_calculation_setup_state", state)
+    return state
+
 
 def get_calculation_setup_widgets():
     """Get or create calculation setup widgets (singleton pattern)"""
-    if _shared_state['widgets'] is not None:
-        return _shared_state['widgets']
-    
-    _shared_state['widgets'] = create_calculation_setup_widgets()
-    return _shared_state['widgets']
+    state = _get_state()
+    if state["widgets"] is not None:
+        return state["widgets"]
+
+    state["widgets"] = create_calculation_setup_widgets()
+    return state["widgets"]
+
 
 def create_calculation_setup_widgets():
     """Create all widgets for calculation setup page"""
+    state = _get_state()
 
     # Project & Database selection
     select_project = pmu.widgets.Select(
@@ -57,7 +87,7 @@ def create_calculation_setup_widgets():
 
     # Tables
     processes_tabulator = pn.widgets.Tabulator(
-        _shared_state['df_processes'],
+        state["df_processes"],
         sizing_mode="stretch_both",
         widths={
             "Product": "25%",
@@ -153,7 +183,7 @@ You will be able to enter new process data here.
     # Callbacks
     def _on_project_select(event):
         print(f"Project selected: {event.new}")
-        _shared_state['current_project'] = event.new
+        state["current_project"] = event.new
         set_current_project(event.new)
         select_db.disabled = False
         select_db.options = list_databases()[::-1]
@@ -165,21 +195,21 @@ You will be able to enter new process data here.
 
     def _on_db_select(event):
         print(f"Database selected: {event.new}")
-        _shared_state['current_db'] = event.new
+        state["current_db"] = event.new
         no_db_alert.visible = False
         select_db.loading = True
-        set_current_project(_shared_state['current_project'])
-        _shared_state['df_processes'] = pd.DataFrame(
+        set_current_project(state["current_project"])
+        state["df_processes"] = pd.DataFrame(
             [
                 {
                     "Product": p.get("reference product"),
                     "Process": p.get("name"),
                     "Location": p.get("location"),
                 }
-                for p in list_processes(_shared_state['current_db'])
+                for p in list_processes(state["current_db"])
             ]
         )
-        processes_tabulator.value = _shared_state['df_processes']
+        processes_tabulator.value = state["df_processes"]
         processes_tabulator.pagination="remote"
         processes_tabulator.page_size = None
         processes_tabulator.layout = "fit_data_stretch"
@@ -210,7 +240,7 @@ You will be able to enter new process data here.
             process_name.value = clicked["Process"].iloc[0]
             location_name.value = clicked["Location"].iloc[0]
             process_production = list_process_production(
-                _shared_state['current_db'],
+                state["current_db"],
                 clicked["Process"].iloc[0],
                 clicked["Product"].iloc[0],
                 clicked["Location"].iloc[0]
@@ -228,7 +258,7 @@ You will be able to enter new process data here.
                 columns=["Amount", "Product", "Process", "Location"],
             )
             process_inputs = list_process_inputs(
-                _shared_state['current_db'],
+                state["current_db"],
                 clicked["Process"].iloc[0],
                 clicked["Product"].iloc[0],
                 clicked["Location"].iloc[0]

@@ -3,31 +3,52 @@ import panel_material_ui as pmu
 from panel_lca_app_concept.data import STAGES, PRODUCTS, compute_footprint
 from panel_lca_app_concept.charts import plot_stacked_bars, update_stacked_bars, plot_sankey, update_sankey
 
-# Module-level shared state for results
-_shared_state = {
-    'source_df': None,
-    'colors': None,
-    'widgets': None,
-}
+
+def _new_state():
+    """Initialize state container for one session."""
+    return {
+        "source_df": None,
+        "colors": None,
+        "widgets": None,
+    }
+
+
+_fallback_state = _new_state()
+
+
+def _get_state():
+    """Return state scoped to the active Panel session when possible."""
+    doc = getattr(pn.state, "curdoc", None)
+    if doc is None:
+        return _fallback_state
+
+    state = getattr(doc, "_impact_overview_state", None)
+    if state is None:
+        state = _new_state()
+        setattr(doc, "_impact_overview_state", state)
+    return state
 
 def initialize_results_data():
     """Initialize results data and charts"""
     # palette for bars (use PMU to keep your look)
-    _shared_state['colors'] = pmu.theme.generate_palette("#5a4fcf", n_colors=len(STAGES))
-    _shared_state['source_df'] = compute_footprint(PRODUCTS[:5])
+    state = _get_state()
+    state['colors'] = pmu.theme.generate_palette("#5a4fcf", n_colors=len(STAGES))
+    state['source_df'] = compute_footprint(PRODUCTS[:5])
 
 def get_impact_overview_widgets():
     """Get or create impact overview widgets (singleton pattern)"""
-    if _shared_state['widgets'] is not None:
-        return _shared_state['widgets']
-    
-    _shared_state['widgets'] = create_impact_overview_widgets()
-    return _shared_state['widgets']
+    state = _get_state()
+    if state['widgets'] is not None:
+        return state['widgets']
+
+    state['widgets'] = create_impact_overview_widgets()
+    return state['widgets']
 
 def create_impact_overview_widgets():
     """Create widgets for impact overview page"""
-    
-    if _shared_state['source_df'] is None:
+    state = _get_state()
+
+    if state['source_df'] is None:
         initialize_results_data()
     
     # Widgets
@@ -38,27 +59,27 @@ def create_impact_overview_widgets():
 
     # Charts
     plotly_pane = pn.pane.Plotly(
-        plot_stacked_bars(_shared_state['source_df'], normalize.value, _shared_state['colors']),
+        plot_stacked_bars(state['source_df'], normalize.value, state['colors']),
         sizing_mode="stretch_width",
         config={"responsive": True},
     )
 
     sankey_pane = pn.pane.Plotly(
-        plot_sankey(_shared_state['source_df']), sizing_mode="stretch_width", config={"responsive": True}
+        plot_sankey(state['source_df']), sizing_mode="stretch_width", config={"responsive": True}
     )
 
     # Callbacks
     def _recalc(_=None):
-        _shared_state['source_df'] = compute_footprint(products_mc.value)
-        update_stacked_bars(plotly_pane.object, _shared_state['source_df'], normalize.value, _shared_state['colors'])
-        update_sankey(sankey_pane.object, _shared_state['source_df'])
+        state['source_df'] = compute_footprint(products_mc.value)
+        update_stacked_bars(plotly_pane.object, state['source_df'], normalize.value, state['colors'])
+        update_sankey(sankey_pane.object, state['source_df'])
 
     def _toggle_normalize(_):
-        update_stacked_bars(plotly_pane.object, _shared_state['source_df'], normalize.value, _shared_state['colors'])
+        update_stacked_bars(plotly_pane.object, state['source_df'], normalize.value, state['colors'])
 
     def _on_theme_change(_):
         # re-apply backgrounds and line colors after theme flips
-        update_stacked_bars(plotly_pane.object, _shared_state['source_df'], normalize.value, _shared_state['colors'])
+        update_stacked_bars(plotly_pane.object, state['source_df'], normalize.value, state['colors'])
 
     # Wire up callbacks
     normalize.param.watch(_toggle_normalize, "value")
