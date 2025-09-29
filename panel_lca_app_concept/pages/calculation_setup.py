@@ -436,12 +436,18 @@ Select the method to use for the analysis.
         sizing_mode="stretch_width",
     )
     
+    label_inputs = pmu.Typography("Inputs:", variant="h6")
+
+    label_outputs = pmu.Typography("Outputs:", variant="h6")
+
     process_edits = pmu.Column(
         widgets['product_name'],
         widgets['process_name'],
         widgets['location_name'],
         widgets['description'],
+        label_outputs,
         widgets['outputs'],
+        label_inputs,
         widgets['inputs'],
         sizing_mode="stretch_width",
     )

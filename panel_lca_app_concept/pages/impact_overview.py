@@ -112,7 +112,7 @@ def create_impact_overview_view():
     widgets = get_impact_overview_widgets()
 
     header = pmu.pane.Markdown(
-        "Explore PMI-LCA results through interactive visualizations."
+        "Explore PMI-LCA results through interactive visualizations. In this demo version you only see dummy data here to show what kind of interactivity is possible.",
     )
 
     results_tabs = pmu.Tabs(
