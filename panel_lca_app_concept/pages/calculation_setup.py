@@ -197,7 +197,6 @@ You will be able to enter new process data here.
         print(f"Database selected: {event.new}")
         state["current_db"] = event.new
         no_db_alert.visible = False
-        select_db.loading = True
         set_current_project(state["current_project"])
         state["df_processes"] = pd.DataFrame(
             [
@@ -214,7 +213,6 @@ You will be able to enter new process data here.
         processes_tabulator.page_size = None
         processes_tabulator.layout = "fit_data_stretch"
         # processes_tabulator.layout = "fit_data_table"
-        select_db.loading = False
         processes_tabulator.visible = True
         functional_unit.visible = True
 
